@@ -1,0 +1,17 @@
+{
+  "updated": "2026-09-26",
+  "note": "Which model sits in which seat. The skill reads this at every run. Change a seat only after testing — a newer model is not automatically better at a given job.",
+  "seats": {
+    "parent":         { "model": "claude-opus-5-5",  "effort": "high", "job": "scopes the question, briefs each team, writes draft and final answer" },
+    "research":       { "model": "claude-sonnet-5",  "effort": "high", "job": "one agent per research angle; discovery, not judgment" },
+    "qa":             { "model": "claude-opus-5-5",  "effort": "high", "job": "independent fact-checkers; re-verify every load-bearing claim" },
+    "review":         { "model": "claude-opus-5-5",  "effort": "high", "job": "does the conclusion follow from the facts?" },
+    "adversary":      { "model": "claude-opus-5-5",  "effort": "high", "job": "paid to refute the draft, one lens each" },
+    "second_opinion": { "model": "claude-fable-5-1", "effort": "high", "job": "Max tier only: one QA seat and one adversary seat from a different model, for different blind spots", "optional": true },
+    "codex":          { "model": "gpt-6-astra",      "effort": "high", "job": "Max tier only: one QA seat from a different vendor; skipped silently when unavailable", "optional": true }
+  },
+  "fallbacks": {
+    "second_opinion": "qa",
+    "codex": "qa"
+  }
+}

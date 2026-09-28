@@ -1,0 +1,8 @@
+.DS_Store
+# personal config lives in ~/.config/fan-out-fan-in and never in this repo
+config.json
+.env
+.env.*
+active/
+research/
+*.bak*
