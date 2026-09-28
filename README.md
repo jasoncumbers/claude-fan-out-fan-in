@@ -37,11 +37,13 @@ The report states a position, lists what survived, what was refuted, what needs 
 
 ## Three tiers
 
-| Tier | For | Checks per important claim | Adversary rounds | Typical time |
-|---|---|---|---|---|
-| **Quick** | A basic fact or narrow question | 1 | 1 | ~10–15 min |
-| **Normal** | Most research | 2, independent | up to 2 | ~20–35 min |
-| **Max** | Big decisions: architecture, vendors, money, strategy | 3, from different models where available | up to 3 | ~35–60 min |
+| Tier | For | Agents per run | Checks per important claim | Adversary rounds | Follow-up research | Typical time |
+|---|---|---|---|---|---|---|
+| **Quick** | A basic fact or narrow question | 5–9 | 1 | 1 | none | ~10–15 min |
+| **Normal** | Most research | 14–31 | 2, independent | up to 2 | up to 3 per run | ~20–40 min |
+| **Max** | Big decisions: architecture, vendors, money, strategy | 25–63 | 3, from different models where available | up to 3 | up to 5 per run | ~45–75 min |
+
+When review or an adversary spots something nobody researched, the skill sends a researcher after it, until the run's follow-up budget is spent. Gaps raised in the last adversary round, or after the budget runs out, go in the report as open questions instead of starting another loop.
 
 Say "quick", "max" or "be thorough" to choose one. Otherwise the skill picks, tells you which it picked, and you can override it.
 

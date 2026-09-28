@@ -25,11 +25,15 @@ export const meta = {
 
 const A = args || {}
 const TIER = ({ quick: 1, normal: 1, max: 1 })[A.tier] ? A.tier : 'normal'
+// gapCap is ONE pool for the whole run (review + every adversary round), not per round.
+// Per-round caps let a Normal run grow to 49 agents / 56 min on its first live test (2026-09-28).
 const T = {
   quick:  { angles: '1-2', checkers: 1, lenses: ['logic+correctness+reproduce'], rounds: 1, gapCap: 0, claimCap: 5,  concurrency: 3, separateReview: false, lightEffort: 'medium' },
   normal: { angles: '3-4', checkers: 2, lenses: ['correctness', 'reproduce'],     rounds: 2, gapCap: 3, claimCap: 10, concurrency: 4, separateReview: true,  lightEffort: 'high' },
   max:    { angles: '4-6', checkers: 3, lenses: ['correctness', 'economics', 'risk', 'reproduce'], rounds: 3, gapCap: 5, claimCap: 12, concurrency: 4, separateReview: true,  lightEffort: 'high' },
 }[TIER]
+let gapBudget = T.gapCap
+const openQuestions = []
 
 const M = Object.assign({
   parent: 'claude-opus-5-5', research: 'claude-sonnet-5', qa: 'claude-opus-5-5',
@@ -262,10 +266,19 @@ Ask: Does the likely conclusion actually follow, or was it assumed and decorated
 const reviewText = r => !r ? '(no separate review at this tier)' :
   `follows=${r.follows}\n${(r.problems || []).map(p => `- ${p.kind}: ${p.detail}`).join('\n')}\nMissing: ${(r.missing || []).join(' ; ')}`
 
-async function fillGaps(gaps, round) {
-  if (!T.gapCap) { if (gaps.length) log(`Round ${round}: ${gaps.length} research gaps noted but not pursued at the ${TIER} tier — they go in the report as open questions`); return [] }
-  const gs = gaps.slice(0, T.gapCap)
-  if (gaps.length > gs.length) log(`Round ${round}: ${gaps.length - gs.length} research gaps over the cap of ${T.gapCap} were not pursued`)
+async function fillGaps(gaps, round, isLastRound) {
+  if (!gaps.length) return []
+  if (isLastRound || !gapBudget) {
+    openQuestions.push(...gaps)
+    log(`Round ${round}: ${gaps.length} research gaps not pursued (${isLastRound ? 'final adversary round' : 'gap budget used up'}) — they go in the report as open questions`)
+    return []
+  }
+  const gs = gaps.slice(0, gapBudget)
+  gapBudget -= gs.length
+  if (gaps.length > gs.length) {
+    openQuestions.push(...gaps.slice(gs.length))
+    log(`Round ${round}: ${gaps.length - gs.length} research gaps over the run's gap budget of ${T.gapCap} were not pursued — they go in the report as open questions`)
+  }
   const extra = await Promise.all(gs.map((g, i) => researchAngle(
     { id: `g${round}${String.fromCharCode(97 + i)}`, title: `Gap: ${g}`, brief: `Close this specific gap raised by review/adversaries: ${g}`, start_points: [] },
     'This is a follow-up on a gap found after the first pass. Be specific and primary-sourced.').catch(() => null)))
@@ -329,9 +342,10 @@ Return refutations with primary-source evidence and a severity. Put anything tha
   const fresh = attacks.flatMap(a => a.refutations || []).filter(r => r.severity !== 'minor')
   const gaps = attacks.flatMap(a => a.gaps || [])
   log(`Round ${round}: ${fresh.length} major/fatal refutations, ${gaps.length} gaps`)
-  if (!fresh.length && !gaps.length) break
+  const lastRound = round === T.rounds
+  if (!fresh.length && (!gaps.length || lastRound)) { if (gaps.length) await fillGaps(gaps, round, true); break }
   raised.push(...fresh)
-  if (gaps.length) results = results.concat(await fillGaps(gaps, round))
+  if (gaps.length) results = results.concat(await fillGaps(gaps, round, lastRound))
   draft = await run(draftPrompt(draft, fresh.map(r => `- [${r.severity}] ${r.target}: ${r.why} ${r.evidence && r.evidence.length ? `[${r.evidence.join(', ')}]` : ''}`).join('\n') || '(only new research gaps; see ledger)'),
     { label: `parent:redraft:r${round}`, phase: 'Draft', model: M.parent, effort: T.lightEffort })
 }
@@ -357,6 +371,11 @@ ${ledger(results)}
 
 REFUTATIONS RAISED DURING ADVERSARIAL REVIEW:
 ${raised.map(r => `- [${r.severity}] ${r.target}: ${r.why}`).join('\n') || '(none of substance)'}
+
+OPEN QUESTIONS (research gaps raised but not pursued this run — put them in section 7):
+${openQuestions.map(g => `- ${g}`).join('\n') || '(none)'}
+
+MODELS PER SEAT: ${JSON.stringify(M)}${CODEX ? ' · codex: one QA seat at Max tier when available' : ''}
 
 RUN STATS: ${JSON.stringify(stats)}
 

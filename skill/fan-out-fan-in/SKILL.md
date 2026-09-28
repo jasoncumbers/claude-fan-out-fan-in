@@ -31,11 +31,13 @@ Read `~/.config/fan-out-fan-in/config.json`.
 The user's words win: "quick" → Quick; "normal" → Normal; "max", "thorough", "comprehensive", "audit", "be certain" → Max.
 Otherwise choose, and say which in one line before launching (the user can override):
 
-| Tier | Use for | Workers | Checks per important claim | Adversary rounds | Typical time |
-|---|---|---|---|---|---|
-| **Quick** | A basic fact or narrow question | ~3 | 1 | 1 | ~10–15 min |
-| **Normal** | Most research | 5–7 | 2, independent | up to 2 | ~20–35 min |
-| **Max** | Complex projects, anything expensive, hard to reverse, or outward-facing | ~15 + loop rounds | 3, from different models where available | up to 3 | ~35–60 min |
+| Tier | Use for | Agents per run | Checks per important claim | Adversary rounds | Follow-up research | Typical time |
+|---|---|---|---|---|---|---|
+| **Quick** | A basic fact or narrow question | 5–9 | 1 | 1 | none | ~10–15 min |
+| **Normal** | Most research | 14–31 | 2, independent | up to 2 | up to 3 per run | ~20–40 min |
+| **Max** | Complex projects, anything expensive, hard to reverse, or outward-facing | 25–63 | 3, from different models where available | up to 3 | up to 5 per run | ~45–75 min |
+
+Follow-up research is one budget for the whole run, not per round. Gaps raised in the final adversary round, or after the budget is spent, become open questions in the report. They never start another loop.
 
 Default to **Max** when the work is a complex project decision (architecture, vendor or money choices, strategy); **Quick** for simple lookups; **Normal** otherwise. If `config.default_tier` is set to a tier, use it when the request doesn't say.
 
