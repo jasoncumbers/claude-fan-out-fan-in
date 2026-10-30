@@ -57,7 +57,9 @@ Set `sensitive: true` when the question or context contains client or customer d
 
 ## Step 4 — Launch
 
-Call the **Workflow** tool with `scriptPath: SKILL_DIR/workflow/fan-out.js` and `args`:
+**Launch only on a clean go.** The Workflow harness hands every agent the user's most recent message as the run's request, and tells them it outranks the brief. So launch in the turn that answers the user's go. If another message from the user arrives before you launch (a mid-turn question about something else), answer it, end the turn, and wait for a fresh go: launched then, the run researches that message instead. If the go message also answers other things, say in `context` which part is the go and that the main session handles the rest. *(2026-10-30: a mid-turn question about an OBS folder became a Normal run's request, and 28 agents answered it instead of the research.)*
+
+Then call the **Workflow** tool with `scriptPath: SKILL_DIR/workflow/fan-out.js` and `args`:
 
 ```json
 {
